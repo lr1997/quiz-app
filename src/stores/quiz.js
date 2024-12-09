@@ -94,17 +94,22 @@ export const useQuizStore = defineStore('quiz', {
     // 获取学习统计信息
     statistics: (state) => {
       const totalQuestions = state.units.length * 3
+      const totalScores = {
+        basic: totalQuestions * state.scoring.points.basic,
+        time: totalQuestions * state.scoring.points.fast,
+      }
+
       return {
         totalQuestions,
         answeredQuestions: state.answers.length,
         basicScore: {
           current: state.scoring.basicScore.current,
-          total: this.totalPossibleScores.basic,
+          total: totalScores.basic,
           correctCount: state.scoring.basicScore.correctCount,
         },
         timeScore: {
           current: state.scoring.timeScore.current,
-          total: this.totalPossibleScores.time,
+          total: totalScores.time,
           correctCount: state.scoring.timeScore.correctCount,
           fastAnswers: state.scoring.timeScore.fastAnswers,
         },
@@ -185,10 +190,26 @@ export const useQuizStore = defineStore('quiz', {
       if (this.progress.currentQuestionIndex < 2) {
         this.progress.currentQuestionIndex++
         this.startQuestion() // 开始下一题计时
-      } else if (this.hasNextUnit) {
-        this.nextUnit()
       } else {
-        this.completeLearning()
+        // 设置当前单元的得分数据
+        this.currentUnitScores = {
+          unitId: this.currentUnit.id,
+          basicScore: this.scoring.basicScore.current,
+          basicTotal: this.totalPossibleScores.basic,
+          timeScore: this.scoring.timeScore.current,
+          timeTotal: this.totalPossibleScores.time,
+          correctCount: this.scoring.basicScore.correctCount,
+          totalAnswered: this.answers.length,
+          fastAnswers: this.scoring.timeScore.fastAnswers,
+        }
+        this.showScoreModal = true
+
+        // 如果是最后一个单元，设置完成状态
+        if (!this.hasNextUnit) {
+          this.progress.isCompleted = true
+          this.endTime = new Date()
+          this.saveToLocalStorage()
+        }
       }
     },
 
@@ -213,10 +234,21 @@ export const useQuizStore = defineStore('quiz', {
     continueToNextUnit() {
       this.showScoreModal = false
       this.currentUnitScores = null
-      this.progress.currentUnitIndex++
-      this.progress.videoCompleted = false
-      this.progress.currentQuestionIndex = 0
-      this.startQuestion()
+
+      // 只有在不是最后一个单元时才继续
+      if (this.hasNextUnit) {
+        this.progress.currentUnitIndex++
+        this.progress.videoCompleted = false
+        this.progress.currentQuestionIndex = 0
+        this.startQuestion()
+      } else {
+        // 如果是最后一个单元，直接完成学习
+        this.progress.isCompleted = true
+        this.endTime = new Date()
+        this.saveToLocalStorage()
+        // 这里可以触发路由跳转到结果页面，或者其他完成后的逻辑
+        console.log('答题完毕')
+      }
     },
 
     // 完成整个学习过程
