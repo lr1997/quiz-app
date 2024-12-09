@@ -7,14 +7,23 @@
       <div class="score-summary">
         <div class="score-card">
           <h3>基础得分</h3>
-          <p class="score">{{ store.scoring.basicScore.current }} / {{ store.totalPossibleScores.basic }}</p>
+          <!-- <p class="score">{{ store.scoring.basicScore.current }} / {{ store.totalPossibleScores.basic }}</p> -->
+          <p class="score">{{ store.scoring.basicScore.current }}</p>
+
           <p class="detail">答对 {{ store.scoring.basicScore.correctCount }} 题</p>
         </div>
-        
         <div class="score-card">
-          <h3>计时得分</h3>
-          <p class="score">{{ store.scoring.timeScore.current }} / {{ store.totalPossibleScores.time }}</p>
+            <h3>速度奖励</h3>
+            <p class="score">{{ store.scoring.timeScore.current -  store.scoring.basicScore.current}}</p>
           <p class="detail">快速答对 {{ store.scoring.timeScore.fastAnswers }} 题</p>
+        </div>
+        <div class="score-card">
+          <h3>总计得分</h3>
+          <!-- <p class="score">{{ store.scoring.timeScore.current }} / {{ store.totalPossibleScores.time }}</p> -->
+          <p class="score">{{ store.scoring.timeScore.current }} </p>
+
+          <!-- <p class="detail">快速答对 {{ store.scoring.timeScore.fastAnswers }} 题</p> -->
+          <p class="detail">基础得分 + 奖励得分</p>
         </div>
       </div>
   
