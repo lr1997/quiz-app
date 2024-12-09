@@ -1,39 +1,36 @@
-<!-- src/components/ScoreModal.vue -->
+<!-- ScoreModal.vue -->
 <template>
     <div v-if="show" class="modal-overlay">
       <div class="modal-content">
-        <h2>单元{{ unitId }}完成！</h2>
+        <h2>单元 {{ unitId }} 完成！</h2>
         
-        <div class="score-info">
+        <div class="scores-container">
           <div class="score-item">
-            <h3>分数A (普通)</h3>
-            <p>{{ basicScore }}/{{ basicTotal }}</p>
+            <h3>基础得分</h3>
+            <p class="score">{{ basicScore }}</p>
+            <p class="detail">答对 {{ correctCount }} 题</p>
           </div>
           
           <div class="score-item">
-            <h3>分数B (计时)</h3>
-            <p>{{ timeScore }}/{{ timeTotal }}</p>
+            <h3>速度加分</h3>
+            <p class="score">{{ timeScore - basicScore }}</p>
+            <p class="detail">快速答对 {{ fastAnswers }} 题</p>
           </div>
-  
-          <div class="stats">
-            <p>正确题数: {{ correctCount }}/{{ totalAnswered }}</p>
-            <p>快速答对: {{ fastAnswers }} 题</p>
+          
+          <div class="score-item">
+            <h3>总计得分</h3>
+            <p class="score">{{ timeScore }}</p>
+            <p class="detail">基础得分 + 速度加分</p>
           </div>
         </div>
   
-        <button class="continue-btn" @click="onContinue">继续学习</button>
+        <button class="continue-btn" @click="handleContinue">继续学习</button>
       </div>
     </div>
   </template>
   
   <script setup>
-import { useRouter } from 'vue-router'
-import { useQuizStore } from '@/stores/quiz'
-
-const router = useRouter()
-const store = useQuizStore()
-
-defineProps({
+const props = defineProps({
   show: Boolean,
   unitId: Number,
   basicScore: Number,
@@ -47,13 +44,8 @@ defineProps({
 
 const emit = defineEmits(['continue'])
 
-const onContinue = () => {
-  const isCompleted = store.continueToNextUnit()
-  if (isCompleted) {
-    router.push('/result')
-  } else {
-    emit('continue')
-  }
+const handleContinue = () => {
+  emit('continue')
 }
 </script>
   
@@ -72,12 +64,12 @@ const onContinue = () => {
 }
 
 .modal-content {
-  background-color: white;
+  background: white;
   padding: 2rem;
   border-radius: 8px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
-  max-width: 400px;
-  width: 90%;
+  max-width: 90%;
+  width: 600px;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
 }
 
 h2 {
@@ -86,54 +78,69 @@ h2 {
   margin-bottom: 1.5rem;
 }
 
-.score-info {
-  margin: 1.5rem 0;
+.scores-container {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  gap: 1rem;
+  margin-bottom: 2rem;
 }
 
 .score-item {
-  margin-bottom: 1rem;
+  text-align: center;
   padding: 1rem;
-  background-color: #f8f9fa;
-  border-radius: 4px;
+  background: #f8f9fa;
+  border-radius: 8px;
 }
 
 .score-item h3 {
   color: #666;
   margin-bottom: 0.5rem;
+  font-size: 1rem;
+}
+
+.score {
+  font-size: 2rem;
+  font-weight: bold;
+  color: #42b983;
+  margin: 0.5rem 0;
+}
+
+.detail {
+  color: #666;
   font-size: 0.9rem;
 }
 
-.score-item p {
-  color: #2c3e50;
-  font-size: 1.2rem;
-  font-weight: bold;
-}
-
-.stats {
-  margin-top: 1rem;
-  padding: 1rem;
-  background-color: #e9ecef;
-  border-radius: 4px;
-}
-
-.stats p {
-  margin: 0.5rem 0;
-  color: #666;
-}
-
 .continue-btn {
+  display: block;
   width: 100%;
-  padding: 0.8rem;
+  max-width: 200px;
+  margin: 0 auto;
+  padding: 0.8rem 1.5rem;
   background-color: #42b983;
   color: white;
   border: none;
   border-radius: 4px;
-  cursor: pointer;
   font-size: 1rem;
+  cursor: pointer;
   transition: background-color 0.3s;
 }
 
 .continue-btn:hover {
   background-color: #3aa876;
+}
+
+@media (max-width: 600px) {
+  .modal-content {
+    padding: 1.5rem;
+    margin: 1rem;
+  }
+
+  .scores-container {
+    grid-template-columns: 1fr;
+  }
+
+  .score {
+    font-size: 1.5rem;
+  }
 }
 </style>

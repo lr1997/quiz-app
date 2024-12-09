@@ -1,60 +1,59 @@
 <template>
-    <div class="learning-view">
-      <!-- 进度条 -->
-      <div class="progress-bar">
-        <div class="progress-text">
-          单元 {{ quizStore.totalProgress.currentUnit }}/{{ quizStore.units.length }}
-          <template v-if="quizStore.progress.videoCompleted">
-            - 题目 {{ quizStore.progress.currentQuestionIndex + 1 }}/3
-          </template>
-        </div>
-      </div>
-  
-      <!-- 主要内容区域 -->
-      <div class="content-area">
-        <!-- 视频部分 -->
-        <div v-if="!quizStore.progress.videoCompleted" class="section">
-          <VideoPlayer 
-            :video="quizStore.currentVideo"
-            @complete="onVideoComplete"
-          />
-        </div>
-  
-        <!-- 答题部分 -->
-        <div v-else class="section">
-          <QuizQuestion
-            :question="quizStore.currentQuestion"
-            @answer="onAnswerSubmit"
-          />
-        </div>
-
-        <ScoreModal
-      :show="quizStore.showScoreModal"
-      v-if="quizStore.currentUnitScores"
-      :unit-id="quizStore.currentUnitScores.unitId"
-      :basic-score="quizStore.currentUnitScores.basicScore"
-      :basic-total="quizStore.currentUnitScores.basicTotal"
-      :time-score="quizStore.currentUnitScores.timeScore"
-      :time-total="quizStore.currentUnitScores.timeTotal"
-      :correct-count="quizStore.currentUnitScores.correctCount"
-      :total-answered="quizStore.currentUnitScores.totalAnswered"
-      :fast-answers="quizStore.currentUnitScores.fastAnswers"
-      @continue="quizStore.continueToNextUnit"
-    />
+  <div class="learning-view">
+    <!-- 进度条 -->
+    <div class="progress-bar">
+      <div class="progress-text">
+        单元 {{ quizStore.totalProgress.currentUnit }}/{{ quizStore.units.length }}
+        <template v-if="quizStore.progress.videoCompleted">
+          - 题目 {{ quizStore.progress.currentQuestionIndex + 1 }}/3
+        </template>
       </div>
     </div>
-  </template>
-  
-  <script setup>
+
+    <!-- 主要内容区域 -->
+    <div class="content-area">
+      <!-- 视频部分 -->
+      <div v-if="!quizStore.progress.videoCompleted" class="section">
+        <VideoPlayer 
+          :video="quizStore.currentVideo"
+          @complete="onVideoComplete"
+        />
+      </div>
+
+      <!-- 答题部分 -->
+      <div v-else class="section">
+        <QuizQuestion
+          :question="quizStore.currentQuestion"
+          @answer="onAnswerSubmit"
+        />
+      </div>
+
+      <ScoreModal
+        v-if="quizStore.showScoreModal && quizStore.currentUnitScores"
+        :show="quizStore.showScoreModal"
+        :unit-id="quizStore.currentUnitScores.unitId"
+        :basic-score="quizStore.currentUnitScores.basicScore"
+        :basic-total="quizStore.currentUnitScores.basicTotal"
+        :time-score="quizStore.currentUnitScores.timeScore"
+        :time-total="quizStore.currentUnitScores.timeTotal"
+        :correct-count="quizStore.currentUnitScores.correctCount"
+        :total-answered="quizStore.currentUnitScores.totalAnswered"
+        :fast-answers="quizStore.currentUnitScores.fastAnswers"
+        @continue="onContinue"
+      />
+    </div>
+  </div>
+</template>
+
+<script setup>
 import { useQuizStore } from '@/stores/quiz'
+import { useRouter } from 'vue-router'
 import ScoreModal from '@/components/ScoreModal.vue'
 import VideoPlayer from '@/components/VideoPlayer.vue'
 import QuizQuestion from '@/components/QuizQuestion.vue'
 
 const quizStore = useQuizStore()
-
-// // 初始化学习
-// quizStore.initLearning()
+const router = useRouter()
 
 // 视频完成处理
 const onVideoComplete = () => {
@@ -65,9 +64,17 @@ const onVideoComplete = () => {
 const onAnswerSubmit = (answerId) => {
   quizStore.submitAnswer(answerId)
 }
+
+// 继续下一单元处理
+const onContinue = () => {
+  const isCompleted = quizStore.continueToNextUnit()
+  if (isCompleted) {
+    router.push('/result')
+  }
+}
 </script>
-  
-  <style scoped>
+
+<style scoped>
 .learning-view {
   background: white;
   border-radius: 8px;

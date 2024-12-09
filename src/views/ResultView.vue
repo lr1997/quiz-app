@@ -5,24 +5,19 @@
       
       <!-- 总体得分 -->
       <div class="score-summary">
-        <div class="score-card">
+        <div class="score-card basic">
           <h3>基础得分</h3>
-          <!-- <p class="score">{{ store.scoring.basicScore.current }} / {{ store.totalPossibleScores.basic }}</p> -->
           <p class="score">{{ store.scoring.basicScore.current }}</p>
-
           <p class="detail">答对 {{ store.scoring.basicScore.correctCount }} 题</p>
         </div>
-        <div class="score-card">
-            <h3>速度奖励</h3>
-            <p class="score">{{ store.scoring.timeScore.current -  store.scoring.basicScore.current}}</p>
+        <div class="score-card bonus">
+          <h3>速度奖励</h3>
+          <p class="score">{{ store.scoring.timeScore.current - store.scoring.basicScore.current }}</p>
           <p class="detail">快速答对 {{ store.scoring.timeScore.fastAnswers }} 题</p>
         </div>
-        <div class="score-card">
+        <div class="score-card total">
           <h3>总计得分</h3>
-          <!-- <p class="score">{{ store.scoring.timeScore.current }} / {{ store.totalPossibleScores.time }}</p> -->
-          <p class="score">{{ store.scoring.timeScore.current }} </p>
-
-          <!-- <p class="detail">快速答对 {{ store.scoring.timeScore.fastAnswers }} 题</p> -->
+          <p class="score">{{ store.scoring.timeScore.current }}</p>
           <p class="detail">基础得分 + 奖励得分</p>
         </div>
       </div>
@@ -36,8 +31,11 @@
   
       <!-- 答题详情 -->
       <div class="answer-details">
-        <h2>答题详情</h2>
-        <div class="answers-list">
+        <div class="details-header" @click="toggleDetails">
+          <h2>答题详情</h2>
+          <span class="toggle-icon">{{ showDetails ? '↑' : '↓' }}</span>
+        </div>
+        <div v-show="showDetails" class="answers-list">
           <div 
             v-for="(answer, index) in store.answers" 
             :key="index"
@@ -45,12 +43,12 @@
             :class="{ correct: answer.isCorrect, wrong: !answer.isCorrect }"
           >
             <div class="answer-header">
-              <span class="unit">单元 {{ answer.unitId }}</span>
-              <span class="time">用时: {{ formatAnswerTime(answer.answerTime) }}秒</span>
-              <span class="status">{{ answer.isCorrect ? '✓ 正确' : '✗ 错误' }}</span>
-            </div>
-            <div class="answer-time-status">
-              {{ answer.isQuick ? '快速答对' : '' }}
+              <span class="unit">单元{{ answer.unitId }}</span>
+              <span class="result-info">
+                <span class="status">{{ answer.isCorrect ? '✓ 正确' : '✗ 错误' }}</span>
+                <span class="time">{{ formatAnswerTime(answer.answerTime) }}秒</span>
+                <span v-if="answer.isQuick" class="bonus">+5分</span>
+              </span>
             </div>
           </div>
         </div>
@@ -62,11 +60,17 @@
   </template>
   
   <script setup>
+import { ref } from 'vue'
 import { useQuizStore } from '@/stores/quiz'
 import { useRouter } from 'vue-router'
 
 const store = useQuizStore()
 const router = useRouter()
+const showDetails = ref(false)
+
+const toggleDetails = () => {
+  showDetails.value = !showDetails.value
+}
 
 // 格式化时间
 function formatTime(date) {
@@ -116,10 +120,42 @@ h1 {
 }
 
 .score-card {
-  background: #f8f9fa;
   padding: 1.5rem;
   border-radius: 8px;
   text-align: center;
+  position: relative;
+}
+
+.score-card.basic {
+  background: #f8f9fa;
+}
+
+.score-card.bonus {
+  background: #fff3e0;
+}
+
+.score-card.total {
+  background: #e8f5e9;
+}
+
+.score-card.bonus::before {
+  content: '+';
+  position: absolute;
+  left: -15px;
+  top: 50%;
+  transform: translateY(-50%);
+  font-size: 24px;
+  color: #666;
+}
+
+.score-card.total::before {
+  content: '=';
+  position: absolute;
+  left: -15px;
+  top: 50%;
+  transform: translateY(-50%);
+  font-size: 24px;
+  color: #666;
 }
 
 .score-card h3 {
@@ -153,46 +189,95 @@ h1 {
 
 .answer-details {
   margin-bottom: 2rem;
-}
-
-.answer-item {
   background: #fff;
-  padding: 1rem;
   border-radius: 8px;
-  margin-bottom: 1rem;
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 }
 
+.details-header {
+  padding: 1rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  cursor: pointer;
+  transition: background-color 0.3s;
+}
+
+.details-header:hover {
+  background-color: #f8f9fa;
+}
+
+.details-header h2 {
+  margin: 0;
+  font-size: 1.2rem;
+  color: #2c3e50;
+}
+
+.toggle-icon {
+  font-size: 1.2rem;
+  color: #666;
+}
+
+.answers-list {
+  padding: 0 1rem 1rem;
+  max-height: 400px;
+  overflow-y: auto;
+}
+
+.answer-item {
+  padding: 0.8rem;
+  margin-bottom: 0.5rem;
+  border-radius: 4px;
+  background: #f8f9fa;
+  border-left: 4px solid #ddd;
+}
+
 .answer-item.correct {
-  border-left: 4px solid #42b983;
+  border-left-color: #42b983;
+  background: #f1f9f5;
 }
 
 .answer-item.wrong {
-  border-left: 4px solid #ff6b6b;
+  border-left-color: #ff6b6b;
+  background: #fff5f5;
 }
 
 .answer-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 0.5rem;
+}
+
+.result-info {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
 }
 
 .unit {
-  font-weight: bold;
+  font-weight: 500;
+  color: #2c3e50;
+}
+
+.status {
+  font-weight: 500;
 }
 
 .time {
   color: #666;
 }
 
-.status {
-  font-weight: bold;
+.bonus {
+  color: #42b983;
+  font-weight: 500;
 }
 
-.answer-time-status {
+.answer-item.correct .status {
   color: #42b983;
-  font-size: 0.9rem;
+}
+
+.answer-item.wrong .status {
+  color: #ff6b6b;
 }
 
 .restart-btn {
@@ -223,9 +308,12 @@ h1 {
     grid-template-columns: 1fr;
   }
 
-  .answer-header {
-    flex-direction: column;
-    align-items: flex-start;
+  .score-card.bonus::before,
+  .score-card.total::before {
+    display: none;
+  }
+
+  .result-info {
     gap: 0.5rem;
   }
 }

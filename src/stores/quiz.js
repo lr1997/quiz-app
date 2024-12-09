@@ -1,6 +1,6 @@
+// stores/quiz.js
 import { defineStore } from 'pinia'
 import { quizData } from '@/data/quiz-data'
-import { useRouter } from 'vue-router' // 添加这行
 
 export const useQuizStore = defineStore('quiz', {
   state: () => ({
@@ -233,19 +233,31 @@ export const useQuizStore = defineStore('quiz', {
     },
 
     continueToNextUnit() {
+      console.log('=== continueToNextUnit start ===')
+      console.log('Current unit index:', this.progress.currentUnitIndex)
+      console.log('Current unit:', this.units[this.progress.currentUnitIndex])
+
       this.showScoreModal = false
       this.currentUnitScores = null
 
       if (this.hasNextUnit) {
-        this.progress.currentUnitIndex++
+        // 检查下一个单元是否存在
+        const nextIndex = this.progress.currentUnitIndex + 1
+        console.log('Next unit index will be:', nextIndex)
+        console.log('Next unit data:', this.units[nextIndex])
+
+        this.progress.currentUnitIndex = nextIndex
         this.progress.videoCompleted = false
         this.progress.currentQuestionIndex = 0
         this.startQuestion()
+
+        console.log('=== continueToNextUnit end ===')
         return false // 继续学习
       } else {
         this.progress.isCompleted = true
         this.endTime = new Date()
         this.saveToLocalStorage()
+        console.log('=== Learning completed ===')
         return true // 学习完成
       }
     },
