@@ -27,6 +27,12 @@
   </template>
   
   <script setup>
+import { useRouter } from 'vue-router'
+import { useQuizStore } from '@/stores/quiz'
+
+const router = useRouter()
+const store = useQuizStore()
+
 defineProps({
   show: Boolean,
   unitId: Number,
@@ -42,7 +48,12 @@ defineProps({
 const emit = defineEmits(['continue'])
 
 const onContinue = () => {
-  emit('continue')
+  const isCompleted = store.continueToNextUnit()
+  if (isCompleted) {
+    router.push('/result')
+  } else {
+    emit('continue')
+  }
 }
 </script>
   

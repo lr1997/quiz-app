@@ -1,5 +1,6 @@
 import { defineStore } from 'pinia'
 import { quizData } from '@/data/quiz-data'
+import { useRouter } from 'vue-router' // 添加这行
 
 export const useQuizStore = defineStore('quiz', {
   state: () => ({
@@ -235,19 +236,17 @@ export const useQuizStore = defineStore('quiz', {
       this.showScoreModal = false
       this.currentUnitScores = null
 
-      // 只有在不是最后一个单元时才继续
       if (this.hasNextUnit) {
         this.progress.currentUnitIndex++
         this.progress.videoCompleted = false
         this.progress.currentQuestionIndex = 0
         this.startQuestion()
+        return false // 继续学习
       } else {
-        // 如果是最后一个单元，直接完成学习
         this.progress.isCompleted = true
         this.endTime = new Date()
         this.saveToLocalStorage()
-        // 这里可以触发路由跳转到结果页面，或者其他完成后的逻辑
-        console.log('答题完毕')
+        return true // 学习完成
       }
     },
 
