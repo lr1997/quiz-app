@@ -30,18 +30,15 @@
 
     <!-- 成绩弹窗 -->
     <ScoreModal
-      v-if="quizStore.showScoreModal"
-      :show="quizStore.showScoreModal"
-      :unit-id="quizStore.currentUnitScores?.unitId"
-      :basic-score="quizStore.currentUnitScores?.basicScore"
-      :basic-total="quizStore.currentUnitScores?.basicTotal"
-      :time-score="quizStore.currentUnitScores?.timeScore"
-      :time-total="quizStore.currentUnitScores?.timeTotal"
-      :correct-count="quizStore.currentUnitScores?.correctCount"
-      :total-answered="quizStore.currentUnitScores?.totalAnswered"
-      :fast-answers="quizStore.currentUnitScores?.fastAnswers"
-      @continue="handleContinue"
+      v-if="quizStore.showScoreModal && quizStore.modalType === 'default'"
+      v-bind="modalProps"
+      @continue="quizStore.continueToNextUnit"
     />
+
+    <ScoreModalA v-if="quizStore.showScoreModal && quizStore.modalType === 'typeA'" v-bind="modalAProps" @continue="handleContinue"/>
+  
+
+    <ScoreModalB v-if="quizStore.showScoreModal && quizStore.modalType === 'typeB'" v-bind="modalBProps" @continue="handleContinue"/>
 
       <!-- 开始答题确认 -->
       <ConfirmModal
@@ -61,14 +58,51 @@
 import { ref } from 'vue'
 import { useQuizStore } from '@/stores/quiz'
 import { useRouter } from 'vue-router'
+import { computed } from 'vue'
 import ConfirmModal from '@/components/ConfirmModal.vue'
 import ScoreModal from '@/components/ScoreModal.vue'
+import ScoreModalA from '@/components/ScoreModalA.vue'
+import ScoreModalB from '@/components/ScoreModalB.vue'
 import VideoPlayer from '@/components/VideoPlayer.vue'
 import QuizQuestion from '@/components/QuizQuestion.vue'
 
 const quizStore = useQuizStore()
 const router = useRouter()
 const showStartQuizConfirm = ref(false)
+
+// 将所有 props 组合成一个对象，使模板更简洁
+const modalProps = computed(() => ({
+  show: quizStore.showScoreModal,
+  unitId: quizStore.currentUnitScores?.unitId,
+  basicScore: quizStore.currentUnitScores?.basicScore,
+  basicTotal: quizStore.currentUnitScores?.basicTotal,
+  timeScore: quizStore.currentUnitScores?.timeScore,
+  timeTotal: quizStore.currentUnitScores?.timeTotal,
+  correctCount: quizStore.currentUnitScores?.correctCount,
+  totalAnswered: quizStore.currentUnitScores?.totalAnswered,
+  fastAnswers: quizStore.currentUnitScores?.fastAnswers,
+}))
+
+// 为 ModalA 创建单独的 props
+const modalAProps = computed(() => ({
+  show: quizStore.showScoreModal,
+  unitId: quizStore.currentUnitScores?.unitId,
+  basicScore: quizStore.currentUnitScores?.basicScore,
+  basicTotal: quizStore.currentUnitScores?.basicTotal,
+  timeScore: quizStore.currentUnitScores?.timeScore,
+  timeTotal: quizStore.currentUnitScores?.timeTotal,
+  correctCount: quizStore.currentUnitScores?.correctCount,
+  totalAnswered: quizStore.currentUnitScores?.totalAnswered,
+  fastAnswers: quizStore.currentUnitScores?.fastAnswers,
+}))
+
+const modalBProps = computed(() => ({
+  show: quizStore.showScoreModal,
+  unitId: quizStore.currentUnitScores?.unitId,
+  totalScore: quizStore.scoring.basicScore.current, // 累计基础得分
+  totalCorrect: quizStore.scoring.basicScore.correctCount, // 累计答对题数
+  totalQuestions: quizStore.totalQuestions, // 总题目数
+}))
 
 // 视频完成处理
 const onVideoComplete = () => {

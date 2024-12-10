@@ -1,11 +1,12 @@
 // stores/quiz.js
 import { defineStore } from 'pinia'
-import { quizData } from '@/data/quiz-data'
+import { quizData, MODAL_CONFIG } from '@/data/quiz-data'
 
 export const useQuizStore = defineStore('quiz', {
   state: () => ({
     // 所有学习单元数据
     units: quizData.units,
+    modalType: MODAL_CONFIG.type,
 
     // 当前进度状态
     progress: {
@@ -137,6 +138,38 @@ export const useQuizStore = defineStore('quiz', {
       this.startQuestion() // 开始第一题计时
     },
 
+    // 获取单个单元的得分数据
+    // stores/quiz.js
+    // 修改这些获取单个单元得分的方法
+
+    getUnitBasicScore(unitId) {
+      // 只获取当前这一轮的本单元答题记录
+      const currentUnitAnswers = this.answers.slice(-3) // 每单元3题，所以取最后3条记录
+      return (
+        currentUnitAnswers.filter((answer) => answer.isCorrect).length * this.scoring.points.basic
+      )
+    },
+
+    getUnitTimeScore(unitId) {
+      const currentUnitAnswers = this.answers.slice(-3)
+      return currentUnitAnswers.reduce((total, answer) => {
+        if (answer.isCorrect) {
+          return total + (answer.isQuick ? this.scoring.points.fast : this.scoring.points.overtime)
+        }
+        return total
+      }, 0)
+    },
+
+    getUnitCorrectCount(unitId) {
+      const currentUnitAnswers = this.answers.slice(-3)
+      return currentUnitAnswers.filter((answer) => answer.isCorrect).length
+    },
+
+    getUnitFastAnswers(unitId) {
+      const currentUnitAnswers = this.answers.slice(-3)
+      return currentUnitAnswers.filter((answer) => answer.isQuick).length
+    },
+
     // 提交答案
     submitAnswer(answerId) {
       const question = this.currentQuestion
@@ -171,37 +204,34 @@ export const useQuizStore = defineStore('quiz', {
         this.scoring.timeScore.correctCount++
       }
 
-      console.log('当前分数情况：')
-      console.log(
-        '分数A (普通):',
-        this.scoring.basicScore.current + '/' + this.totalPossibleScores.basic,
-      )
-      console.log(
-        '分数B (计时):',
-        this.scoring.timeScore.current + '/' + this.totalPossibleScores.time,
-      )
-      console.log(
-        '本题答题时间:',
-        answerTime.toFixed(2) + '秒',
-        '是否在时限内:',
-        answerTime <= question.timeLimit ? '是' : '否',
-      )
-
       // 更新进度
       if (this.progress.currentQuestionIndex < 2) {
         this.progress.currentQuestionIndex++
         this.startQuestion() // 开始下一题计时
       } else {
-        // 设置当前单元的得分数据
-        this.currentUnitScores = {
-          unitId: this.currentUnit.id,
-          basicScore: this.scoring.basicScore.current,
-          basicTotal: this.totalPossibleScores.basic,
-          timeScore: this.scoring.timeScore.current,
-          timeTotal: this.totalPossibleScores.time,
-          correctCount: this.scoring.basicScore.correctCount,
-          totalAnswered: this.answers.length,
-          fastAnswers: this.scoring.timeScore.fastAnswers,
+        // 根据 modalType 设置不同的得分数据
+        if (this.modalType === 'typeA') {
+          this.currentUnitScores = {
+            unitId: this.currentUnit.id,
+            basicScore: this.getUnitBasicScore(this.currentUnit.id),
+            basicTotal: 30, // 单个单元总分：3题 x 10分
+            timeScore: this.getUnitTimeScore(this.currentUnit.id),
+            timeTotal: 45, // 单个单元总分：3题 x 15分
+            correctCount: this.getUnitCorrectCount(this.currentUnit.id),
+            totalAnswered: 3,
+            fastAnswers: this.getUnitFastAnswers(this.currentUnit.id),
+          }
+        } else {
+          this.currentUnitScores = {
+            unitId: this.currentUnit.id,
+            basicScore: this.scoring.basicScore.current,
+            basicTotal: this.totalPossibleScores.basic,
+            timeScore: this.scoring.timeScore.current,
+            timeTotal: this.totalPossibleScores.time,
+            correctCount: this.scoring.basicScore.correctCount,
+            totalAnswered: this.answers.length,
+            fastAnswers: this.scoring.timeScore.fastAnswers,
+          }
         }
         this.showScoreModal = true
 
@@ -217,48 +247,48 @@ export const useQuizStore = defineStore('quiz', {
     // 进入下一个单元
     nextUnit() {
       if (this.hasNextUnit) {
-        // 设置当前单元的得分数据
-        this.currentUnitScores = {
-          unitId: this.currentUnit.id,
-          basicScore: this.scoring.basicScore.current,
-          basicTotal: this.totalPossibleScores.basic,
-          timeScore: this.scoring.timeScore.current,
-          timeTotal: this.totalPossibleScores.time,
-          correctCount: this.scoring.basicScore.correctCount,
-          totalAnswered: this.answers.length,
-          fastAnswers: this.scoring.timeScore.fastAnswers,
+        if (this.modalType === 'typeA') {
+          this.currentUnitScores = {
+            unitId: this.currentUnit.id,
+            basicScore: this.getUnitBasicScore(this.currentUnit.id),
+            basicTotal: 30,
+            timeScore: this.getUnitTimeScore(this.currentUnit.id),
+            timeTotal: 45,
+            correctCount: this.getUnitCorrectCount(this.currentUnit.id),
+            totalAnswered: 3,
+            fastAnswers: this.getUnitFastAnswers(this.currentUnit.id),
+          }
+        } else {
+          this.currentUnitScores = {
+            unitId: this.currentUnit.id,
+            basicScore: this.scoring.basicScore.current,
+            basicTotal: this.totalPossibleScores.basic,
+            timeScore: this.scoring.timeScore.current,
+            timeTotal: this.totalPossibleScores.time,
+            correctCount: this.scoring.basicScore.correctCount,
+            totalAnswered: this.answers.length,
+            fastAnswers: this.scoring.timeScore.fastAnswers,
+          }
         }
         this.showScoreModal = true
       }
     },
 
     continueToNextUnit() {
-      console.log('=== continueToNextUnit start ===')
-      console.log('Current unit index:', this.progress.currentUnitIndex)
-      console.log('Current unit:', this.units[this.progress.currentUnitIndex])
-
       this.showScoreModal = false
       this.currentUnitScores = null
 
       if (this.hasNextUnit) {
-        // 检查下一个单元是否存在
-        const nextIndex = this.progress.currentUnitIndex + 1
-        console.log('Next unit index will be:', nextIndex)
-        console.log('Next unit data:', this.units[nextIndex])
-
-        this.progress.currentUnitIndex = nextIndex
+        this.progress.currentUnitIndex++
         this.progress.videoCompleted = false
         this.progress.currentQuestionIndex = 0
         this.startQuestion()
-
-        console.log('=== continueToNextUnit end ===')
         return false // 继续学习
       } else {
         this.progress.isCompleted = true
         this.endTime = new Date()
         this.saveToLocalStorage()
-        console.log('=== Learning completed ===')
-        return true // 学习完成
+        return true // 学习完成，需要跳转到结果页
       }
     },
 

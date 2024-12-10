@@ -143,3 +143,7 @@ export const quizData = {
     },
   ],
 }
+
+export const MODAL_CONFIG = {
+  type: 'typeB', // 可选值: 'default', 'typeA', 'typeB'
+}

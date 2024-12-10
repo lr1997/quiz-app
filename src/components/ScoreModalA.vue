@@ -30,7 +30,7 @@
   </template>
   
   <script setup>
-defineProps({
+const props = defineProps({
   show: Boolean,
   unitId: Number,
   basicScore: Number,
@@ -50,6 +50,7 @@ const handleContinue = () => {
 </script>
   
   <style scoped>
+/* 样式与原 ScoreModal 完全相同 */
 .modal-overlay {
   position: fixed;
   top: 0;

@@ -353,7 +353,7 @@ h2 {
 .volume-slider {
   width: 80px;
   height: 4px;
-  -webkit-appearance: none;
+  /* -webkit-appearance: none; */
   background: rgba(255, 255, 255, 0.2);
   border-radius: 2px;
   outline: none;
