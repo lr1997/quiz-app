@@ -12,7 +12,7 @@
           </div>
           
           <div class="score-item">
-            <h3>速度加分</h3>
+            <h3>速度奖励</h3>
             <p class="score">{{ timeScore - basicScore }}</p>
             <p class="detail">快速答对 {{ fastAnswers }} 题</p>
           </div>
@@ -20,7 +20,7 @@
           <div class="score-item">
             <h3>总计得分</h3>
             <p class="score">{{ timeScore }}</p>
-            <p class="detail">基础得分 + 速度加分</p>
+            <p class="detail">基础得分 + 速度奖励</p>
           </div>
         </div>
   

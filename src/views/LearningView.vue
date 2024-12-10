@@ -28,51 +28,86 @@
         />
       </div>
 
-      <ScoreModal
-        v-if="quizStore.showScoreModal && quizStore.currentUnitScores"
-        :show="quizStore.showScoreModal"
-        :unit-id="quizStore.currentUnitScores.unitId"
-        :basic-score="quizStore.currentUnitScores.basicScore"
-        :basic-total="quizStore.currentUnitScores.basicTotal"
-        :time-score="quizStore.currentUnitScores.timeScore"
-        :time-total="quizStore.currentUnitScores.timeTotal"
-        :correct-count="quizStore.currentUnitScores.correctCount"
-        :total-answered="quizStore.currentUnitScores.totalAnswered"
-        :fast-answers="quizStore.currentUnitScores.fastAnswers"
-        @continue="onContinue"
+    <!-- 成绩弹窗 -->
+    <ScoreModal
+      v-if="quizStore.showScoreModal"
+      :show="quizStore.showScoreModal"
+      :unit-id="quizStore.currentUnitScores?.unitId"
+      :basic-score="quizStore.currentUnitScores?.basicScore"
+      :basic-total="quizStore.currentUnitScores?.basicTotal"
+      :time-score="quizStore.currentUnitScores?.timeScore"
+      :time-total="quizStore.currentUnitScores?.timeTotal"
+      :correct-count="quizStore.currentUnitScores?.correctCount"
+      :total-answered="quizStore.currentUnitScores?.totalAnswered"
+      :fast-answers="quizStore.currentUnitScores?.fastAnswers"
+      @continue="handleContinue"
+    />
+
+      <!-- 开始答题确认 -->
+      <ConfirmModal
+        :show="showStartQuizConfirm"
+        title="视频学习完成"
+        message="你已完成本单元的视频学习，准备好开始答题了吗？"
+        confirm-text="开始答题"
+        cancel-text="重看视频"
+        @confirm="startQuiz"
+        @cancel="replayVideo"
       />
     </div>
   </div>
 </template>
 
 <script setup>
+import { ref } from 'vue'
 import { useQuizStore } from '@/stores/quiz'
 import { useRouter } from 'vue-router'
+import ConfirmModal from '@/components/ConfirmModal.vue'
 import ScoreModal from '@/components/ScoreModal.vue'
 import VideoPlayer from '@/components/VideoPlayer.vue'
 import QuizQuestion from '@/components/QuizQuestion.vue'
 
 const quizStore = useQuizStore()
 const router = useRouter()
+const showStartQuizConfirm = ref(false)
 
 // 视频完成处理
 const onVideoComplete = () => {
+  showStartQuizConfirm.value = true
+}
+
+const handleContinue = () => {
+  const isCompleted = quizStore.continueToNextUnit()
+  if (isCompleted) {
+    router.push('/result')
+  }
+}
+
+// 开始答题
+const startQuiz = () => {
+  showStartQuizConfirm.value = false
   quizStore.markVideoComplete()
+}
+
+// 重看视频
+const replayVideo = () => {
+  showStartQuizConfirm.value = false
+  // 重置视频到开始位置
+  const videoElement = document.querySelector('video')
+  if (videoElement) {
+    videoElement.currentTime = 0
+    videoElement.play()
+  }
 }
 
 // 提交答案处理
 const onAnswerSubmit = (answerId) => {
   quizStore.submitAnswer(answerId)
 }
-
-// 继续下一单元处理
-const onContinue = () => {
-  const isCompleted = quizStore.continueToNextUnit()
-  if (isCompleted) {
-    router.push('/result')
-  }
-}
 </script>
+
+<style scoped>
+/* 样式保持不变 */
+</style>
 
 <style scoped>
 .learning-view {

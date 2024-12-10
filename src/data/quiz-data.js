@@ -4,7 +4,7 @@ export const quizData = {
       id: 1,
       video: {
         title: '人工智能基础概念',
-        url: 'video-url-1',
+        url: '/videos/part_1.mp4',
         thumbnail: 'https://via.placeholder.com/640x360',
         duration: '10:00',
       },
@@ -51,7 +51,7 @@ export const quizData = {
       id: 2,
       video: {
         title: '机器学习与深度学习',
-        url: 'video-url-2',
+        url: '/videos/part_2.mp4',
         thumbnail: 'https://via.placeholder.com/640x360',
         duration: '12:00',
       },
@@ -98,7 +98,7 @@ export const quizData = {
       id: 3,
       video: {
         title: 'AI的社会影响与未来发展',
-        url: 'video-url-3',
+        url: '/videos/part_3.mp4',
         thumbnail: 'https://via.placeholder.com/640x360',
         duration: '15:00',
       },
