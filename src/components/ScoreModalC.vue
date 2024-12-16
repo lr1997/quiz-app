@@ -1,6 +1,3 @@
-
-
-复制
 <template>
   <div v-if="show" class="modal-overlay">
     <div class="modal-content">
@@ -17,15 +14,18 @@
             <div class="tip-icon">⭐️</div>
             <p>距离上一名还差 {{ pointsToNext }} 分</p>
           </div>
+          <div class="tip-item">
+            <div class="tip-icon">📈</div>
+            <p>{{ rankChangeText }}</p>
+          </div>
         </div>
         
         <div class="rank-list">
           <h3>总分排行榜</h3>
           <div class="rank-item" v-for="(score, index) in rankList" :key="index"
                :class="{ 'current-user': score.isCurrentUser }">
-            <span class="rank-number" :class="{'top-three': index < 3}">{{ index + 1 }}</span>
             <span class="user-name">{{ score.name }}</span>
-            <span class="user-score">{{ score.score }}分</span>
+            <span class="rank-number" :class="{'top-three': index < 3}">{{ index + 1 }}</span>
           </div>
         </div>
       </div>
@@ -50,12 +50,42 @@ const pointsToNext = computed(() => {
   return rankList.value[currentIndex - 1].score - rankList.value[currentIndex].score
 })
 
+// const props = defineProps({
+//   show: Boolean,
+//   unitId: Number,
+//   totalScore: Number,
+//   totalCorrect: Number,
+//   totalQuestions: Number,
+// })
+
 const props = defineProps({
   show: Boolean,
   unitId: Number,
   totalScore: Number,
   totalCorrect: Number,
   totalQuestions: Number,
+  previousRank: {
+    // 添加上一次的排名属性
+    type: Number,
+    default: null,
+  },
+})
+
+// 添加排名变化提示文本的计算
+const rankChangeText = computed(() => {
+  if (props.previousRank === null) {
+    return '请尽可能超越你的同伴，请继续加油！'
+  }
+
+  const rankDiff = props.previousRank - currentRank.value
+
+  if (rankDiff > 0) {
+    return `太棒了！排名上升了${rankDiff}位！`
+  } else if (rankDiff < 0) {
+    return `加油！排名下降了${-rankDiff}位`
+  } else {
+    return '继续保持，争取更上一层！'
+  }
 })
 
 // 计算完成进度文本
@@ -120,9 +150,10 @@ const rankList = computed(() => {
   return getRankListByUnit(props.unitId, props.totalScore)
 })
 
-const emit = defineEmits(['continue'])
+const emit = defineEmits(['continue', 'updatePreviousRank'])
 
 const handleContinue = () => {
+  emit('updatePreviousRank', currentRank.value)
   emit('continue')
 }
 </script>
@@ -145,7 +176,7 @@ const handleContinue = () => {
   background: white;
   padding: 1.2rem;
   border-radius: 12px;
-  width: 560px;
+  width: 660px;
   box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
 }
 
@@ -232,13 +263,14 @@ h2 {
 }
 
 .rank-number {
+  color: #3aa876;
   width: 22px;
   height: 22px;
   display: flex;
   align-items: center;
   justify-content: center;
   background: #42b983;
-  color: white;
+  /* color: white; */
   border-radius: 50%;
   font-size: 0.8rem;
   font-weight: bold;
@@ -301,5 +333,52 @@ h2 {
   .tips-section {
     margin-bottom: 0;
   }
+
+  .tip-item:last-child {
+    margin-bottom: 0;
+  }
+
+  .tip-item .tip-icon {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  /* 可以为不同状态的提示添加不同的样式 */
+  .tip-item:last-child p {
+    color: #2c3e50;
+    font-weight: 500;
+  }
+}
+.rank-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 12px 16px;
+  margin-bottom: 8px;
+  background: #f8f9fa;
+  border-radius: 6px;
+}
+
+.rank-item.current-user {
+  background: #e8f0fe;
+  border: 1px solid #4285f4;
+}
+
+.user-name {
+  font-size: 14px;
+  color: #333;
+  flex: 1;
+}
+
+.rank-number {
+  font-size: 14px;
+  color: white;
+}
+
+.rank-number.top-three {
+  color: white;
+  /* color: #f0a500; */
+  font-weight: 500;
 }
 </style>

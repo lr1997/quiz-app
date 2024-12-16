@@ -40,7 +40,7 @@
 
     <ScoreModalB v-if="quizStore.showScoreModal && quizStore.modalType === 'typeB'" v-bind="modalBProps" @continue="handleContinue"/>
 
-    <ScoreModalC v-if="quizStore.showScoreModal && quizStore.modalType === 'typeC'" v-bind="modalBProps" @continue="handleContinue"/>
+    <ScoreModalC v-if="quizStore.showScoreModal && quizStore.modalType === 'typeC'" v-bind="modalBProps" :previous-rank="previousRank" @continue="handleContinue" @update-previous-rank="updatePreviousRank"/>
     
       <!-- 开始答题确认 -->
       <ConfirmModal
@@ -72,6 +72,12 @@ import QuizQuestion from '@/components/QuizQuestion.vue'
 const quizStore = useQuizStore()
 const router = useRouter()
 const showStartQuizConfirm = ref(false)
+const previousRank = ref(null)
+
+// 在每次完成单元后，需要更新 previousRank
+const updatePreviousRank = (newRank) => {
+  previousRank.value = newRank
+}
 
 // 将所有 props 组合成一个对象，使模板更简洁
 const modalProps = computed(() => ({
@@ -112,6 +118,7 @@ const onVideoComplete = () => {
   showStartQuizConfirm.value = true
 }
 
+// 修改 handleContinue
 const handleContinue = () => {
   const isCompleted = quizStore.continueToNextUnit()
   if (isCompleted) {
@@ -142,9 +149,7 @@ const onAnswerSubmit = (answerId) => {
 }
 </script>
 
-<style scoped>
-/* 样式保持不变 */
-</style>
+
 
 <style scoped>
 .learning-view {

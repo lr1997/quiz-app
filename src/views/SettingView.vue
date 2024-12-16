@@ -13,7 +13,7 @@
                 v-model="tempSettings.modalType" 
                 value="typeA"
               >
-              <span>基础得分 + 奖励分</span>
+              <span>分数显示</span>
               <!-- <div class="description">完成每个单元后显示当前单元的得分情况</div> -->
             </label>
             <label class="radio-label">
@@ -27,12 +27,8 @@
             </label>
 
             <label class="radio-label">
-              <input 
-                type="radio" 
-                v-model="tempSettings.modalType" 
-                value="typeC"
-              >
-              <span>简洁排行榜</span>
+              <input type="radio" v-model="tempSettings.modalType" value="typeC">
+              <span>简洁型排行榜</span>
             </label>
           </div>
         </div>
