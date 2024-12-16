@@ -40,6 +40,8 @@
 
     <ScoreModalB v-if="quizStore.showScoreModal && quizStore.modalType === 'typeB'" v-bind="modalBProps" @continue="handleContinue"/>
 
+    <ScoreModalC v-if="quizStore.showScoreModal && quizStore.modalType === 'typeC'" v-bind="modalBProps" @continue="handleContinue"/>
+    
       <!-- 开始答题确认 -->
       <ConfirmModal
         :show="showStartQuizConfirm"
@@ -63,6 +65,7 @@ import ConfirmModal from '@/components/ConfirmModal.vue'
 import ScoreModal from '@/components/ScoreModal.vue'
 import ScoreModalA from '@/components/ScoreModalA.vue'
 import ScoreModalB from '@/components/ScoreModalB.vue'
+import ScoreModalC from '@/components/ScoreModalC.vue'
 import VideoPlayer from '@/components/VideoPlayer.vue'
 import QuizQuestion from '@/components/QuizQuestion.vue'
 

@@ -25,6 +25,15 @@
               <span>整合型排行榜</span>
               <!-- <div class="description">完成每个单元后显示累计的总得分情况</div> -->
             </label>
+
+            <label class="radio-label">
+              <input 
+                type="radio" 
+                v-model="tempSettings.modalType" 
+                value="typeC"
+              >
+              <span>简洁排行榜</span>
+            </label>
           </div>
         </div>
       </div>

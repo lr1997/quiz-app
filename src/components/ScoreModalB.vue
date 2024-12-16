@@ -127,27 +127,6 @@ const getRankListByUnit = (currentUnit, currentScore) => {
   return allScores.slice(0, 10)
 }
 
-// 计算排行榜，将当前用户的累计分数插入到正确的位置
-// const rankList = computed(() => {
-//   const currentUserScore = {
-//     name: '我',
-//     score: props.totalScore,
-//     isCurrentUser: true,
-//   }
-
-//   const allScores = [...mockRankData]
-
-//   // 找到当前分数应该插入的位置
-//   let insertIndex = allScores.findIndex((item) => item.score <= currentUserScore.score)
-//   if (insertIndex === -1) {
-//     insertIndex = allScores.length
-//   }
-
-//   allScores.splice(insertIndex, 0, currentUserScore)
-
-//   // 只返回前5名
-//   return allScores.slice(0, 5)
-// })
 const rankList = computed(() => {
   return getRankListByUnit(props.unitId, props.totalScore)
 })

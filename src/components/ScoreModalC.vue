@@ -1,35 +1,54 @@
-<!-- components/ScoreModalB.vue -->
+
+
+复制
 <template>
-    <div v-if="show" class="modal-overlay">
-      <div class="modal-content">
-        <h2>单元 {{ unitId }} 完成！</h2>
-        
-        <div class="rank-container">
-          <div class="current-score">
-            <h3>当前累计得分</h3>
-            <p class="score">{{ totalScore }}</p>
-            <p class="detail">总答对 {{ totalCorrect }}/{{ totalQuestions }} 题</p>
-            <p class="progress">完成进度 {{ progressText }}</p>
+  <div v-if="show" class="modal-overlay">
+    <div class="modal-content">
+      <h2>单元 {{ unitId }} 完成！</h2>
+      
+      <div class="main-container">
+        <div class="tips-section">
+          <h3>学习小贴士</h3>
+          <div class="tip-item">
+            <div class="tip-icon">🎯</div>
+            <p>当前排名：第 {{ currentRank }} 名</p>
           </div>
-          
-          <div class="rank-list">
-            <h3>总分排行</h3>
-            <div class="rank-item" v-for="(score, index) in rankList" :key="index"
-                 :class="{ 'current-user': score.isCurrentUser }">
-              <span class="rank-number">{{ index + 1 }}</span>
-              <span class="user-name">{{ score.name }}</span>
-              <span class="user-score">{{ score.score }}分</span>
-            </div>
+          <div class="tip-item">
+            <div class="tip-icon">⭐️</div>
+            <p>距离上一名还差 {{ pointsToNext }} 分</p>
           </div>
         </div>
-  
-        <button class="continue-btn" @click="handleContinue">继续学习</button>
+        
+        <div class="rank-list">
+          <h3>总分排行榜</h3>
+          <div class="rank-item" v-for="(score, index) in rankList" :key="index"
+               :class="{ 'current-user': score.isCurrentUser }">
+            <span class="rank-number" :class="{'top-three': index < 3}">{{ index + 1 }}</span>
+            <span class="user-name">{{ score.name }}</span>
+            <span class="user-score">{{ score.score }}分</span>
+          </div>
+        </div>
       </div>
+
+      <button class="continue-btn" @click="handleContinue">继续学习</button>
     </div>
-  </template>
-  
-  <script setup>
+  </div>
+</template>
+
+
+<script setup>
 import { computed } from 'vue'
+
+// 添加获取当前排名和距离上一名分差的计算
+const currentRank = computed(() => {
+  return rankList.value.findIndex((item) => item.isCurrentUser) + 1
+})
+
+const pointsToNext = computed(() => {
+  const currentIndex = rankList.value.findIndex((item) => item.isCurrentUser)
+  if (currentIndex <= 0) return 0
+  return rankList.value[currentIndex - 1].score - rankList.value[currentIndex].score
+})
 
 const props = defineProps({
   show: Boolean,
@@ -66,6 +85,7 @@ const getRankListByUnit = (currentUnit, currentScore) => {
   const rankData = mockRankData.rankings.map((user) => ({
     name: user.name,
     score: user.scores[unitIndex],
+    isCurrentUser: false, // 为其他用户添加标记
   }))
 
   // 2. 创建当前用户的分数对象
@@ -78,39 +98,24 @@ const getRankListByUnit = (currentUnit, currentScore) => {
   // 3. 合并所有分数
   const allScores = [...rankData, currentUserScore]
 
-  // 4. 按分数从高到低排序
-  allScores.sort((a, b) => b.score - a.score)
+  // 4. 按分数从高到低排序，分数相同时当前用户优先
+  allScores.sort((a, b) => {
+    if (b.score !== a.score) {
+      return b.score - a.score // 分数不同时，按分数降序
+    }
+    // 分数相同时，当前用户排在前面
+    return a.isCurrentUser ? -1 : b.isCurrentUser ? 1 : 0
+  })
 
   // 5. 添加排名信息
   allScores.forEach((item, index) => {
     item.rank = index + 1
   })
 
-  // 6. 返回前5名
+  // 6. 返回前10名
   return allScores.slice(0, 10)
 }
 
-// 计算排行榜，将当前用户的累计分数插入到正确的位置
-// const rankList = computed(() => {
-//   const currentUserScore = {
-//     name: '我',
-//     score: props.totalScore,
-//     isCurrentUser: true,
-//   }
-
-//   const allScores = [...mockRankData]
-
-//   // 找到当前分数应该插入的位置
-//   let insertIndex = allScores.findIndex((item) => item.score <= currentUserScore.score)
-//   if (insertIndex === -1) {
-//     insertIndex = allScores.length
-//   }
-
-//   allScores.splice(insertIndex, 0, currentUserScore)
-
-//   // 只返回前5名
-//   return allScores.slice(0, 5)
-// })
 const rankList = computed(() => {
   return getRankListByUnit(props.unitId, props.totalScore)
 })
@@ -121,8 +126,8 @@ const handleContinue = () => {
   emit('continue')
 }
 </script>
-  
-  <style scoped>
+
+<style scoped>
 .modal-overlay {
   position: fixed;
   top: 0;
@@ -138,75 +143,86 @@ const handleContinue = () => {
 
 .modal-content {
   background: white;
-  padding: 2rem;
-  border-radius: 8px;
-  max-width: 90%;
-  width: 600px;
-  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+  padding: 1.2rem;
+  border-radius: 12px;
+  width: 560px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
 }
 
 h2 {
   text-align: center;
   color: #2c3e50;
-  margin-bottom: 1.5rem;
+  margin-bottom: 0.8rem;
+  font-size: 1.2rem;
 }
 
-.rank-container {
+.main-container {
   display: grid;
-  grid-template-columns: 1fr 2fr;
-  gap: 2rem;
-  margin-bottom: 2rem;
+  grid-template-columns: 0.8fr 1.2fr;
+  gap: 0.8rem;
+  margin-bottom: 1rem;
 }
 
-.current-score {
-  text-align: center;
-  padding: 1rem;
+.tips-section {
   background: #f8f9fa;
+  padding: 0.8rem;
   border-radius: 8px;
+  border-left: 4px solid #42b983;
+  height: fit-content;
 }
 
-.current-score h3 {
-  color: #666;
-  margin-bottom: 0.5rem;
-  font-size: 1rem;
+.tips-section h3 {
+  color: #2c3e50;
+  margin-bottom: 0.6rem;
+  font-size: 0.95rem;
+  text-align: center;
 }
 
-.score {
-  font-size: 2rem;
-  font-weight: bold;
-  color: #42b983;
-  margin: 0.5rem 0;
+.tip-item {
+  display: flex;
+  align-items: center;
+  margin-bottom: 0.6rem;
+  padding: 0.4rem 0.6rem;
+  background: white;
+  border-radius: 6px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
 }
 
-.detail {
-  color: #666;
+.tip-item:last-child {
+  margin-bottom: 0;
+}
+
+.tip-icon {
   font-size: 0.9rem;
+  margin-right: 0.4rem;
+  min-width: 18px;
 }
 
-.progress {
+.tip-item p {
   color: #666;
-  font-size: 0.9rem;
-  margin-top: 0.5rem;
+  font-size: 0.85rem;
+  margin: 0;
+  line-height: 1.3;
 }
 
 .rank-list {
-  padding: 1rem;
   background: #f8f9fa;
+  padding: 0.8rem;
   border-radius: 8px;
 }
 
 .rank-list h3 {
-  margin-bottom: 1rem;
+  margin-bottom: 0.6rem;
   text-align: center;
-  color: #666;
-  font-size: 1rem;
+  color: #2c3e50;
+  font-size: 0.95rem;
 }
 
 .rank-item {
   display: grid;
   grid-template-columns: auto 1fr auto;
-  gap: 1rem;
-  padding: 0.5rem;
+  gap: 0.6rem;
+  padding: 0.35rem 0.5rem;
   border-bottom: 1px solid #eee;
   align-items: center;
 }
@@ -215,68 +231,75 @@ h2 {
   border-bottom: none;
 }
 
-.rank-item.current-user {
-  background: #e8f5e9;
-  border-radius: 4px;
-  font-weight: bold;
-}
-
 .rank-number {
-  width: 24px;
-  height: 24px;
+  width: 22px;
+  height: 22px;
   display: flex;
   align-items: center;
   justify-content: center;
   background: #42b983;
   color: white;
   border-radius: 50%;
-  font-size: 0.9rem;
+  font-size: 0.8rem;
+  font-weight: bold;
+}
+
+.rank-number.top-three {
+  background: linear-gradient(135deg, #ff9a9e 0%, #fad0c4 99%, #fad0c4 100%);
+}
+
+.current-user {
+  background: #e8f5e9;
+  border-radius: 6px;
 }
 
 .user-name {
   color: #2c3e50;
+  font-size: 0.85rem;
 }
 
 .user-score {
   font-weight: 500;
   color: #42b983;
-}
-
-.rank-item.current-user .user-score {
-  color: #2c3e50;
+  font-size: 0.85rem;
 }
 
 .continue-btn {
   display: block;
   width: 100%;
-  max-width: 200px;
-  margin: 0 auto;
-  padding: 0.8rem 1.5rem;
+  max-width: 160px;
+  margin: 0.8rem auto 0;
+  padding: 0.6rem 1.2rem;
   background-color: #42b983;
   color: white;
   border: none;
-  border-radius: 4px;
-  font-size: 1rem;
+  border-radius: 6px;
+  font-size: 0.9rem;
   cursor: pointer;
-  transition: background-color 0.3s;
+  transition: all 0.3s;
+  font-weight: 500;
 }
 
 .continue-btn:hover {
   background-color: #3aa876;
+  transform: translateY(-1px);
+  box-shadow: 0 2px 8px rgba(66, 185, 131, 0.25);
 }
 
 @media (max-width: 600px) {
   .modal-content {
-    padding: 1.5rem;
+    width: 90%;
+    padding: 1rem;
     margin: 1rem;
   }
 
-  .rank-container {
+  .main-container {
     grid-template-columns: 1fr;
+    gap: 0.8rem;
   }
 
-  .rank-list {
-    margin-top: 1rem;
+  .tips-section {
+    margin-bottom: 0;
   }
 }
 </style>
