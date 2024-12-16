@@ -1,12 +1,15 @@
 // stores/quiz.js
 import { defineStore } from 'pinia'
+import { useSettingsStore } from './setting'
+
 import { quizData, MODAL_CONFIG } from '@/data/quiz-data'
 
 export const useQuizStore = defineStore('quiz', {
   state: () => ({
     // 所有学习单元数据
     units: quizData.units,
-    modalType: MODAL_CONFIG.type,
+    // modalType: MODAL_CONFIG.type,
+    modalType: null,
 
     // 当前进度状态
     progress: {
@@ -122,6 +125,14 @@ export const useQuizStore = defineStore('quiz', {
   actions: {
     // 初始化学习
     initLearning() {
+      this.startTime = new Date()
+      this.resetProgress()
+      this.startQuestion()
+
+      const settingsStore = useSettingsStore()
+      settingsStore.loadSettings()
+      this.modalType = settingsStore.settings.modalType
+
       this.startTime = new Date()
       this.resetProgress()
       this.startQuestion()

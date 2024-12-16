@@ -3,6 +3,7 @@ import HomeView from '../views/HomeView.vue'
 import { useQuizStore } from '../stores/quiz' // 添加这行导入
 import LearningView from '../views/LearningView.vue'
 import ResultView from '../views/ResultView.vue'
+import SettingView from '@/views/SettingView.vue'
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
@@ -21,6 +22,11 @@ const router = createRouter({
       path: '/result',
       name: 'result',
       component: ResultView,
+    },
+    {
+      path: '/settings',
+      name: 'settings',
+      component: SettingView,
     },
   ],
 })

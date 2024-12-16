@@ -60,43 +60,12 @@ const mockRankData = {
   ],
 }
 
-// const getRankListByUnit = (currentUnit, currentScore) => {
-//   // 1. 获取当前单元的排名数据
-//   const unitIndex = currentUnit - 1
-//   const rankData = mockRankData.rankings.map((user) => ({
-//     name: user.name,
-//     score: user.scores[unitIndex],
-//   }))
-
-//   // 2. 创建当前用户的分数对象
-//   const currentUserScore = {
-//     name: '我',
-//     score: currentScore,
-//     isCurrentUser: true,
-//   }
-
-//   // 3. 合并所有分数
-//   const allScores = [...rankData, currentUserScore]
-
-//   // 4. 按分数从高到低排序
-//   allScores.sort((a, b) => b.score - a.score)
-
-//   // 5. 添加排名信息
-//   allScores.forEach((item, index) => {
-//     item.rank = index + 1
-//   })
-
-//   // 6. 返回前5名
-//   return allScores.slice(0, 10)
-// }
-
 const getRankListByUnit = (currentUnit, currentScore) => {
   // 1. 获取当前单元的排名数据
   const unitIndex = currentUnit - 1
   const rankData = mockRankData.rankings.map((user) => ({
     name: user.name,
     score: user.scores[unitIndex],
-    isCurrentUser: false, // 为其他用户添加标记
   }))
 
   // 2. 创建当前用户的分数对象
@@ -109,21 +78,15 @@ const getRankListByUnit = (currentUnit, currentScore) => {
   // 3. 合并所有分数
   const allScores = [...rankData, currentUserScore]
 
-  // 4. 按分数从高到低排序，分数相同时当前用户优先
-  allScores.sort((a, b) => {
-    if (b.score !== a.score) {
-      return b.score - a.score // 分数不同时，按分数降序
-    }
-    // 分数相同时，当前用户排在前面
-    return a.isCurrentUser ? -1 : b.isCurrentUser ? 1 : 0
-  })
+  // 4. 按分数从高到低排序
+  allScores.sort((a, b) => b.score - a.score)
 
   // 5. 添加排名信息
   allScores.forEach((item, index) => {
     item.rank = index + 1
   })
 
-  // 6. 返回前10名
+  // 6. 返回前5名
   return allScores.slice(0, 10)
 }
 
