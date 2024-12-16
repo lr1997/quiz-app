@@ -183,7 +183,8 @@ export const useQuizStore = defineStore('quiz', {
         answerId: answerId,
         isCorrect: isCorrect,
         answerTime: answerTime,
-        isQuick: isCorrect && answerTime <= this.scoring.timeLimit,
+        // isQuick: isCorrect && answerTime <= this.scoring.timeLimit,
+        isQuick: isCorrect && answerTime <= question.timeLimit,
         timestamp: new Date(),
       })
 

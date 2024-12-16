@@ -60,31 +60,33 @@ const mockRankData = {
   ],
 }
 
-// 根据当前单元获取对应的排名数据
 const getRankListByUnit = (currentUnit, currentScore) => {
+  // 1. 获取当前单元的排名数据
   const unitIndex = currentUnit - 1
   const rankData = mockRankData.rankings.map((user) => ({
     name: user.name,
     score: user.scores[unitIndex],
   }))
 
-  // 添加当前用户的分数
+  // 2. 创建当前用户的分数对象
   const currentUserScore = {
     name: '我',
     score: currentScore,
     isCurrentUser: true,
   }
 
-  // 合并并排序
-  const allScores = [...rankData]
-  let insertIndex = allScores.findIndex((item) => item.score <= currentUserScore.score)
-  if (insertIndex === -1) {
-    insertIndex = allScores.length
-  }
+  // 3. 合并所有分数
+  const allScores = [...rankData, currentUserScore]
 
-  allScores.splice(insertIndex, 0, currentUserScore)
+  // 4. 按分数从高到低排序
+  allScores.sort((a, b) => b.score - a.score)
 
-  // 返回前5名
+  // 5. 添加排名信息
+  allScores.forEach((item, index) => {
+    item.rank = index + 1
+  })
+
+  // 6. 返回前5名
   return allScores.slice(0, 10)
 }
 
