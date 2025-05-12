@@ -1,4 +1,4 @@
-// stores/quiz.js
+// src/stores/quiz.js
 import { defineStore } from 'pinia'
 import { useSettingsStore } from './setting'
 
@@ -6,6 +6,10 @@ import { quizData, MODAL_CONFIG } from '@/data/quiz-data'
 
 export const useQuizStore = defineStore('quiz', {
   state: () => ({
+    // 新增：学生信息
+    studentId: '',
+    studentName: '',
+
     // 所有学习单元数据
     units: quizData.units,
     // modalType: MODAL_CONFIG.type,
@@ -118,13 +122,24 @@ export const useQuizStore = defineStore('quiz', {
           correctCount: state.scoring.timeScore.correctCount,
           fastAnswers: state.scoring.timeScore.fastAnswers,
         },
+        // 新增：包含学生信息
+        studentId: state.studentId,
+        studentName: state.studentName,
       }
     },
   },
 
   actions: {
+    // 新增：设置学生信息
+    setStudentInfo(studentId, studentName) {
+      this.studentId = studentId
+      this.studentName = studentName
+    },
+
     // 初始化学习
     initLearning() {
+      // 可以在这里加载之前保存的学生信息，如果需要的话
+      // this.loadStudentInfo(); // 假设有一个加载学生信息的方法
       this.startTime = new Date()
       this.resetProgress()
       this.startQuestion()
@@ -251,7 +266,7 @@ export const useQuizStore = defineStore('quiz', {
         if (!this.hasNextUnit) {
           this.progress.isCompleted = true
           this.endTime = new Date()
-          this.saveToLocalStorage()
+          this.saveToLocalStorage() // 保存学习记录和学生信息
         }
       }
     },
@@ -259,6 +274,7 @@ export const useQuizStore = defineStore('quiz', {
     // 进入下一个单元
     nextUnit() {
       if (this.hasNextUnit) {
+        // ... (rest of the nextUnit logic remains the same)
         if (this.modalType === 'typeA') {
           this.currentUnitScores = {
             unitId: this.currentUnit.id,
@@ -299,7 +315,7 @@ export const useQuizStore = defineStore('quiz', {
       } else {
         this.progress.isCompleted = true
         this.endTime = new Date()
-        this.saveToLocalStorage()
+        this.saveToLocalStorage() // 保存学习记录和学生信息
         return true // 学习完成，需要跳转到结果页
       }
     },
@@ -308,7 +324,7 @@ export const useQuizStore = defineStore('quiz', {
     completeLearning() {
       this.progress.isCompleted = true
       this.endTime = new Date()
-      this.saveToLocalStorage()
+      this.saveToLocalStorage() // 保存学习记录和学生信息
     },
 
     // 重置进度
@@ -329,9 +345,10 @@ export const useQuizStore = defineStore('quiz', {
         correctCount: 0,
         fastAnswers: 0,
       }
-      this.startTime = new Date()
+      this.startTime = new Date() // 重置开始时间
       this.endTime = null
       this.currentQuestionStartTime = null
+      // 不重置 studentId 和 studentName，它们应该在会话开始时设置一次
     },
 
     // 获取某个单元的答题情况
@@ -339,9 +356,11 @@ export const useQuizStore = defineStore('quiz', {
       return this.answers.filter((answer) => answer.unitId === unitId)
     },
 
-    // 保存学习记录到本地存储
+    // 保存学习记录到本地存储 (包含学生信息)
     saveToLocalStorage() {
       const learningRecord = {
+        studentId: this.studentId, // 保存学生信息
+        studentName: this.studentName, // 保存学生信息
         startTime: this.startTime,
         endTime: this.endTime,
         answers: this.answers,
@@ -351,16 +370,35 @@ export const useQuizStore = defineStore('quiz', {
       localStorage.setItem('learningRecord', JSON.stringify(learningRecord))
     },
 
-    // 从本地存储加载学习记录
+    // 从本地存储加载学习记录 (包含学生信息)
     loadFromLocalStorage() {
       const record = localStorage.getItem('learningRecord')
       if (record) {
         const data = JSON.parse(record)
-        this.startTime = new Date(data.startTime)
+        // 加载学生信息
+        this.studentId = data.studentId || ''
+        this.studentName = data.studentName || ''
+        this.startTime = data.startTime ? new Date(data.startTime) : null
         this.endTime = data.endTime ? new Date(data.endTime) : null
-        this.answers = data.answers
-        this.scoring = data.scoring
+        this.answers = data.answers || []
+        this.scoring = data.scoring || {
+          timeLimit: 10,
+          points: { basic: 10, fast: 15, overtime: 10 },
+          basicScore: { current: 0, correctCount: 0 },
+          timeScore: { current: 0, correctCount: 0, fastAnswers: 0 },
+        }
+        // 可以根据需要加载进度状态，如果希望从上次中断的地方继续
+        // this.progress = data.progress || { currentUnitIndex: 0, videoCompleted: false, currentQuestionIndex: 0, isCompleted: false };
       }
     },
+    // 新增：加载学生信息 (如果需要在应用启动时恢复)
+    // loadStudentInfo() {
+    //   const record = localStorage.getItem('learningRecord')
+    //   if (record) {
+    //     const data = JSON.parse(record);
+    //     this.studentId = data.studentId || '';
+    //     this.studentName = data.studentName || '';
+    //   }
+    // }
   },
 })

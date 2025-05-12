@@ -1,4 +1,14 @@
-function exportResults() {
+// utils/export.js
+import { useQuizStore } from '@/stores/quiz' // 导入 store
+
+// 在函数前面加上 export
+export function exportResults() {
+  const store = useQuizStore() // 获取 store 实例
+
+  // 获取学生信息
+  const studentId = store.studentId
+  const studentName = store.studentName
+
   const data = store.answers.map((answer) => {
     // 计算这道题的分数
     let basicScore = answer.isCorrect ? store.scoring.points.basic : 0 // 10分或0分
@@ -33,10 +43,13 @@ function exportResults() {
   })
 
   // 生成CSV内容
-  const headers = Object.keys(data[0])
+  // 添加学号和姓名列到头部和数据行
+  const headers = ['学号', '姓名', ...Object.keys(data[0])]
   const csvContent = [
     headers.join(','),
-    ...data.map((row) => headers.map((header) => `"${row[header]}"`).join(',')),
+    ...data.map((row) =>
+      [studentId, studentName, ...headers.slice(2).map((header) => `"${row[header]}"`)].join(','),
+    ),
   ].join('\n')
 
   // 添加BOM标记以支持中文
@@ -48,8 +61,10 @@ function exportResults() {
   const link = document.createElement('a')
   const url = URL.createObjectURL(blob)
   const timestamp = new Date().toISOString().split('T')[0]
+  // 包含学号和姓名在文件名中，如果它们存在
+  const filename = `${studentId || '未知学号'}_${studentName || '未知姓名'}_学习记录-${timestamp}.csv`
   link.setAttribute('href', url)
-  link.setAttribute('download', `学习记录-${timestamp}.csv`)
+  link.setAttribute('download', filename)
   document.body.appendChild(link)
   link.click()
   document.body.removeChild(link)
